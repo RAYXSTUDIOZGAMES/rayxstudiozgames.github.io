@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FINGERPRINT SCANNER</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div class="scan">
+        <div class="hand">
+            <div class="lines"></div>
+        </div>
+        <h3>Hand print scanning</h3>
+    </div>
+</body>
+</html>
+<STYLE>* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: consolas;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #111;
+}
+
+.scan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.scan .hand {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  background: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi3k0DM7BKzLY8u5vFKM9P-c37aCEP2jdLpPyDL4ijrxm4oxebOGreXJtn9LjHndSFkpwULz4lg27yc5GXihG8SKQog4LTd4Y6-k_Q7cpJri6uiO2ZwsEPSxnqxcmQB0cQaGW6gEYFlgYUm1RXgzCsgNLnWPTlymGbdL2s6oCldPH1ARvpnUWAaqendAJQ/s320/hand_02%20%281%29.png');
+  background-size: 500px;
+}
+
+.scan .hand::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhdM6ZsDQe3aepgjWua0bt-j3dK4EoEEtljexOCZI9QRVByEOpAZQuHXVbNcgj-HEKKrAt-oU4EJxXxcmrqE-NE8elKCJb-Kxo7TI8d9m_wgxarAboGZq4eWDNwHatoyZsIcS3VWNpsd3cM4ZYsspyodtnSMUPEk8LRYVwHy1uGF63bfodNbJzdXxWIypo/s320/hand_01%20%281%29.png');
+background-size: 500px;
+animation: animate 4s ease-in-out infinite;
+}
+@keyframes animate
+{
+  0%,100%
+  {
+    height: 0%;
+  }
+  50%
+  {
+    height: 100%;
+  }
+}
+.scan .hand::after
+{
+  content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 8px;
+background: #3fefef;
+border-radius: 8px;
+filter: drop-shadow(0 0 20px #3fefef) drop-shadow(0 0 60px #3fefef);
+animation: animatelines 4s ease-in-out infinite;
+}
+@keyframes animatelines
+{
+  0%,100%
+  {
+    top: 0%;
+  }
+  50%
+  {
+    top: 100%;
+  }
+}
+.scan h3
+{
+text-transform: uppercase;
+font-size: 2em;
+letter-spacing: 2px;
+margin-top: 20px;
+color: #3fefef;
+filter: drop-shadow(0 0 20px #3fefef)drop-shadow(0 0 60px #3fefef);
+animation: animatetext 0.5s steps(1) infinite;
+}
+@keyframes animatetext
+{
+  0%,100%
+  {
+    opacity: 0;
+  }
+  50%
+  {
+    opacity: 1;
+  }
+}
+.scan .hand .lines
+{
+position: absolute;
+inset: 0;
+}
+.scan .hand .lines::before
+{
+    content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 500px;
+height: 500px;
+background: url(https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgQZIECyj9QohbCZhw1bOKQn6EzQ8FJ2lJ7U1kG9cOPEOsYHy_rphRnCMIqwGbnwVWKH9Oyexrn0bwS0exuflWFo06u_hflHF8MgKtJKR_2asKkpZ73Xf9KkCSGQPfxoQUfouOFUmcguWKr8KWdfbi0mqoCUmn-bXGfK4MEe54_QK6S38851Ks7-nnX6sE/s320/lines%20%281%29.png);
+background-size: 500px;
+animation: handlines 4s ease-in-out infinite;
+}
+@keyframes handlines
+{
+  0%,25%,100%
+{
+  height: 0;
+}
+50%
+{
+height: 100%;
+}
+}
+.scan .hand .lines::after
+{
+    content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 500px;
+height: 500px;
+  background: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjL3_NBECQ2mDKOVYF8_ZRK-PHu4WRwHwjEGUctjhlx2i2k10dOB_bQGHjxuRnymYNd22ykI7Zg0giaD-Yvo3hgIVKRQm-AlmNLKzS-cnSu7ETVR4XEG7wqt6-2LsaCi8M5ZIrqlt8KxC0hh7NU6pFNxJJcQpMD1lMWvJ9Q1PuYlHmzkJT3QInvII2v5cA/s320/points.png');
+background-size: 500px;
+animation: handlines 4s ease-in-out infinite;
+}
+@keyframes handpoints
+{
+  0%,100%
+{
+  height: 0;
+}
+50%
+{
+height: 100%;
+}
+}</STYLE>

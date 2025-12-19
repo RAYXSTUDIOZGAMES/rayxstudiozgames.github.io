@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta charset="utf-8" />
+	<title>3D Room</title>
+
+		<!--
+
+			⁉️
+
+			How to use
+
+			On PC:
+			hold down left mouse button to rotate this scene;
+			hold down right mouse button to drag this scene;
+			Also use mouse wheel to change distance to this scene.
+
+			On Mobile:
+			Use 1 finger to rotate this scene;
+			Use 2 fingers to bring closer/move away from this scene.
+
+			⁉️
+
+		-->
+
+		<!--
+
+			Author: ★ Don’t Know ★
+			
+		-->
+
+  </head>
+  <body>
+	<div class="main-container">
+	  <div class="loading-container">
+		<div class="loader">
+		  <p id="progress-status">Loaded 0%</p>
+		  <div class="loader-part"></div>
+		</div>
+		<p id="loaded-items-number"></p>
+	  </div>
+	</div>
+	<canvas id="c"></canvas>
+	<script type="module">
+
+	import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/build/three.module.js';
+	import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/controls/OrbitControls.js';
+	import Stats from 'https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/libs/stats.module.js';
+	import {GLTFLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
+
+	onload = onWindowLoad;
+
+	function onWindowLoad() {
+		setTimeout(function() {
+			const canvas = document.getElementById('c');
+
+			const mainContainer = document.querySelector('.main-container');
+			const progressbar = document.querySelector('.loader-part');
+			const progressStatus = document.querySelector('#progress-status');
+			const loadedItemsNumber = document.querySelector('#loaded-items-number');
+
+			init(mainContainer, progressbar, progressStatus, loadedItemsNumber, canvas);
+		}, 250);
+	}
+
+	function init(mainContainer, progressbar, progressStatus, loadedItemsNumber, canvas) {
+		const onIncorrectRendererSize = () => {
+			const incorrectSize = canvas.width !== window.innerWidth || canvas.height !== window.innerHeight;
+			if (incorrectSize) onWindowResize();
+		};
+
+		let calls = 0,
+			unloaded = 0,
+			progress = 0,
+			stats = new Stats();
+
+		const updateProgress = progress => {
+			const loaded = progress / calls;
+			progressbar.style.transform = `ScaleX(${loaded})`;
+			progressStatus.textContent = 'Loaded ' + (loaded * 100).toFixed(1).split('.').join(',') + '%';
+			loadedItemsNumber.textContent = `${progress} of ${calls} | Unloaded: ${unloaded}`;
+		};
+
+		const w = window.innerWidth;
+		const h = window.innerHeight;
+
+		const PI = Math.PI;
+
+		const renderer = new THREE.WebGLRenderer({
+			canvas,
+			antialias: true
+		});
+		renderer.setSize(w, h);
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.toneMapping = THREE.ACESFilmicToneMapping;
+		renderer.shadowMap.enabled = true;
+		renderer.shadowMapSoft = true;
+		renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+		const fov = 75;
+		const aspect = w / h;
+		const near = 1;
+		const far = 400;
+
+		const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+		camera.position.set(10, 30, 90);
+
+		const controls = new OrbitControls(camera, canvas);
+		controls.update();
+		controls.target = new THREE.Vector3(15, 20, 30);
+
+		const scene = new THREE.Scene();
+
+		const addMesh = (geo, mat, x = 0, y = 0, z = 0, rX = 0, rY = 0, rZ = 0, sX = 1, sY = 1, sZ = 1, castShadow = true, receiveShadow = true) => {
+			const mesh = new THREE.Mesh(geo, mat);
+			mesh.position.set(x, y, z);
+			mesh.rotation.set(rX, rY, rZ);
+			mesh.scale.set(sX, sY, sZ);
+			mesh.castShadow = castShadow;
+			mesh.receiveShadow = receiveShadow;
+			scene.add(mesh);
+
+			return mesh;
+		};
+
+		const loadTexture = (url, callback = function() {}) => {
+			calls++;
+			return new THREE.TextureLoader().load(url, callback);
+		};
+
+		const setRepeatWrapping = (texture, arr, wrapping = THREE.RepeatWrapping) => {
+			texture.wrapS = texture.wrapT = wrapping;
+			texture.repeat.set(...arr);
+			return texture;
+		};
+
+		const sceneBackground = new THREE.Color(0x000000);
+
+		const loadGLTF = (url, x = 0, y = 0, z = 0, rX = 0, rY = 0, rZ = 0, sX = 1, sY = 1, sZ = 1, castShadow = true, receiveShadow = true, bool = false, r = 0, m = 0) => {
+			calls++;
+
+			function onError() {
+				unloaded++;
+			}
+
+			return new GLTFLoader().load(url, GLTF => {
+				const root = GLTF.scene;
+				root.position.set(x, y, z);
+				root.rotation.set(rX, rY, rZ);
+				root.scale.set(sX, sY, sZ);
+				scene.add(root);
+
+				root.traverse(obj => {
+					if (obj.isMesh) {
+						obj.castShadow = castShadow;
+						obj.receiveShadow = receiveShadow;
+						if (obj.material.map) obj.material.map.anisotropy = 16;
+						if (bool) {
+							obj.material.roughness = r;
+							obj.material.metalness = m;
+						}
+					}
+				});
+
+				progress++;
+				updateProgress(progress);
+				return null;
+			}, null, onError);
+		};
+
+		{
+			const light = new THREE.SpotLight(0xFFFFFF, .3, 250, PI / 2, 0);
+			light.position.set(30, 70, 0);
+			light.target.position.set(30, 0, 0);
+			scene.add(light);
+			scene.add(light.target);
+		}
+
+		{
+			const light = new THREE.SpotLight(0xFFFFFF, 1.25, 250, PI / 2.7, .75);
+			light.position.set(30, 70, 0);
+			light.target.position.set(30, 0, 0);
+			light.castShadow = light.receiveShadow = true;
+			light.shadow.mapSize.set(1024, 1024);
+			light.shadow.normalBias = 0.2;
+			scene.add(light);
+			scene.add(light.target);
+		}
+
+		//"Living Room Chair" (https://skfb.ly/6VnuU) by Qu3st10n is licensed under CC Attribution-NonCommercial-NoDerivs (http://creativecommons.org/licenses/by-nc-nd/4.0/).
+		loadGLTF('https://dl.dropbox.com/s/8umwnjheb2e5nkf/chair.glb', 16, 0.15, 0.5, 0, 0, 0, 5, 5, 5);
+		loadGLTF('https://dl.dropbox.com/s/8umwnjheb2e5nkf/chair.glb', 0, 0.15, -81.5, 0, PI, 0, 5, 5, 5);
+		loadGLTF('https://dl.dropbox.com/s/8umwnjheb2e5nkf/chair.glb', -33.5, 0.15, -32, 0, -PI / 2, 0, 5, 5, 5);
+		loadGLTF('https://dl.dropbox.com/s/8umwnjheb2e5nkf/chair.glb', 49.5, 0.15, -48, 0, PI / 2, 0, 5, 5, 5);
+
+		loadGLTF('https://dl.dropbox.com/s/ykxcsto7jca2s4o/pic.glb', 50, 15, -85, 0, -PI / 2, 0, 30, 30, 30, false, true, true, .5, 0);
+
+		loadGLTF('https://dl.dropbox.com/s/fnskgv6rt5ohnia/chandelier.glb', 30, 63, -5, 0, 0, 0, 30, 30, 30, false, true);
+
+		loadGLTF('https://dl.dropbox.com/s/9n78a3jlxlsw4cg/plant.glb', 83, 0, -100, 0, -PI / 2, 0, 80, 80, 80, true, true);
+
+		//"Jalousie Doors" (https://skfb.ly/6RNDT) by dm3V is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+		loadGLTF('https://dl.dropbox.com/s/6twbhw521ehkrc3/Jalousie.glb', 4.2, 2.15, -126, 0, 0, 0, 5.3, 5.3, 5.3, false, true);
+
+		loadGLTF('https://dl.dropbox.com/s/wj482vdtq20lt98/sofa.glb', -15.1, 0, 42, 0, PI / 36, 0, 210, 210, 210, true, true);
+
+		loadGLTF('https://dl.dropbox.com/s/d8hq7dcrafw7m04/statue.glb', 91, 32.3, 10, 0, -PI / 2, 0, 3, 3, 3, true, true);
+
+		loadGLTF('https://dl.dropbox.com/s/wr8tbpebl3wdhgo/armchair.glb', 23, 0, 62, 0, -PI / 1.2, 0, 15, 15, 15);
+		loadGLTF('https://dl.dropbox.com/s/wr8tbpebl3wdhgo/armchair.glb', 23, 0, 19, 0, -PI / 6, 0, 15, 15, 15);
+
+		loadGLTF('https://dl.dropbox.com/s/l1rs0boz0y6vjtw/baseboard_small.glb', 89.2, 0, 124.71, 0, PI, 0, 9.58, 10, 10, false, true, true);
+		loadGLTF('https://dl.dropbox.com/s/l1rs0boz0y6vjtw/baseboard_small.glb', -29.2, 0, -124.71, 0, 0, 0, 9.58, 10, 10, false, true, true);
+		loadGLTF('https://dl.dropbox.com/s/igxeuefnwh24qwa/baseboard_big.glb', -34.715, 0, 119.1, 0, PI / 2, 0, 9.65, 10, 10, false, true, true);
+		loadGLTF('https://dl.dropbox.com/s/igxeuefnwh24qwa/baseboard_big.glb', 94.7, 0, -119.1, 0, -PI / 2, 0, 9.65, 10, 10, false, true, true);
+
+		loadGLTF('https://dl.dropbox.com/s/hcd5loi3kme86tp/cornice_big.glb', -34.2, 65.1, 113.9, 0, PI / 2, 0, .496, .496, .496, false, true);
+		loadGLTF('https://dl.dropbox.com/s/hcd5loi3kme86tp/cornice_big.glb', 94.2, 65.1, -113.9, 0, -PI / 2, 0, .496, .496, .496, false, true);
+		loadGLTF('https://dl.dropbox.com/s/21a8egeg9g8kkc8/cornice_small.glb', 84.3, 65.1, 124.2, 0, PI, 0, .473, .496, .496, false, true);
+		loadGLTF('https://dl.dropbox.com/s/21a8egeg9g8kkc8/cornice_small.glb', -24.3, 65.1, -124.2, 0, 0, 0, .473, .496, .496, false, true);
+
+		//"wooden cupboard" (https://skfb.ly/o6S6H) by Ricardo Sanchez is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+		loadGLTF('https://dl.dropbox.com/s/4r178tjc5ysy0oy/cupboard.glb', 10, 0, 117.1, 0, PI, 0, 35, 25, 30, true, true);
+
+		loadGLTF('https://dl.dropbox.com/s/9uqjl7rttrs8h07/fireplace.glb', 90.1, 0.65, 0, 0, -PI / 2, 0, 30, 30, 30, true, true);
+
+		loadGLTF('https://dl.dropbox.com/s/6hhyqba0kh57r0d/vase.glb', 91, 38.76, -5, 0, 0, 0, 30, 30, 30, true, false);
+
+		loadGLTF('https://dl.dropbox.com/s/9o1gfe9688mdld2/door.glb', -124.64, -23.6, 320, 0, PI / 2, 0, 22, 22, 22, true, true);
+
+		//"Day 2: Freshly Baked" (https://skfb.ly/6XNRp) by Katerina Novakova is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+		loadGLTF('https://dl.dropbox.com/s/97m3zry7r40ek28/cake.glb', 8, 14.43, -40, 0, PI / 2, 0, 5, 5, 5, true, true);
+
+		//"Plate" (https://skfb.ly/6tGUy) by joaoribeiromarques is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+		loadGLTF('https://dl.dropbox.com/s/u2l4dykjc7w5hvt/plate.glb', 8, 14.4, -25, 0, 0, 0, 15, 15, 15);
+		loadGLTF('https://dl.dropbox.com/s/u2l4dykjc7w5hvt/plate.glb', 8, 14.4, -55, 0, 0, 0, 15, 15, 15);
+		loadGLTF('https://dl.dropbox.com/s/u2l4dykjc7w5hvt/plate.glb', -7, 14.4, -40, 0, 0, 0, 15, 15, 15);
+		loadGLTF('https://dl.dropbox.com/s/u2l4dykjc7w5hvt/plate.glb', 23, 14.4, -40, 0, 0, 0, 15, 15, 15);
+
+		//"Pocolov Cake Donuts" (https://skfb.ly/6WUtI) by pocolov is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).
+		loadGLTF('https://dl.dropbox.com/s/eu54nqeu7717nl5/donuts.glb', 5.4, 15.06, -25, 0, 0, 0, 5, 5, 5);
+		loadGLTF('https://dl.dropbox.com/s/eu54nqeu7717nl5/donuts.glb', 10.6, 15.06, -55, 0, PI, 0, 5, 5, 5);
+		loadGLTF('https://dl.dropbox.com/s/eu54nqeu7717nl5/donuts.glb', -7, 15.06, -42.5, 0, -PI / 2, 0, 5, 5, 5);
+		loadGLTF('https://dl.dropbox.com/s/eu54nqeu7717nl5/donuts.glb', 23, 15.06, -37.5, 0, PI / 2, 0, 5, 5, 5);
+
+		const fireTex = loadTexture('https://dl.dropbox.com/s/eefnyjfhumn3mav/fire_tex.jpg', () => {
+			progress++;
+			updateProgress(progress);
+		});
+		addMesh(new THREE.PlaneBufferGeometry(15, 10), new THREE.MeshBasicMaterial({
+			map: fireTex
+		}), 88.4, 10, 0, 0, -PI / 2, 0, 1, 1, 1);
+
+		const carpetTex = loadTexture('https://dl.dropbox.com/s/qb0165pb71ki63u/carpet_tex.jpg', () => {
+			progress++;
+			updateProgress(progress);
+		});
+
+		const carpetMaterials = [
+			new THREE.MeshPhongMaterial({
+				color: 0x111111,
+				shininess: 0
+			}),
+			new THREE.MeshPhongMaterial({
+				color: 0x111111,
+				shininess: 0
+			}),
+			new THREE.MeshPhongMaterial({
+				color: 0x111111,
+				shininess: 0
+			}),
+			new THREE.MeshPhongMaterial({
+				color: 0x111111,
+				shininess: 0
+			}),
+			new THREE.MeshPhongMaterial({
+				map: carpetTex,
+				shininess: 0
+			}),
+			new THREE.MeshPhongMaterial({
+				color: 0x111111,
+				shininess: 0
+			}),
+		];
+
+		//carpet
+		addMesh(new THREE.BoxBufferGeometry(70, 140, 0.2), carpetMaterials, 2, 0, 0, -PI / 2, 0, 0, 1, 1, 1, false, true);
+
+		const addTable = (x = 0, y = 0, z = 0, rX = 0, rY = 0, rZ = 0, sX = 1, sY = 1, sZ = 1) => {
+			const tableTex = loadTexture('https://dl.dropbox.com/s/3uohcrev87t32w1/tableTex.jpg', () => {
+				progress++;
+				updateProgress(progress);
+			});
+			const table = new THREE.Object3D();
+
+			table.add(
+				addMesh(new THREE.CylinderBufferGeometry(20, 20, 0.3, 72), new THREE.MeshPhongMaterial({
+					map: tableTex,
+					shininess: 55
+				}), 0, 14.3, 0),
+				addMesh(new THREE.CylinderBufferGeometry(10, 10, 0.3, 24), new THREE.MeshPhongMaterial({
+					map: tableTex
+				}), 0, 0.15, 0),
+				addMesh(new THREE.CylinderBufferGeometry(2, 2, 14, 24), new THREE.MeshPhongMaterial({
+					map: tableTex
+				}), 0, 7.3, 0),
+			);
+
+			table.position.set(x, y, z);
+			table.rotation.set(rX, rY, rZ);
+			table.scale.set(sX, sY, sZ);
+
+			scene.add(table);
+
+			return null;
+		};
+
+		addTable(8, 0, -40);
+
+		const roomFrontSideTex1 = loadTexture('https://dl.dropbox.com/s/msn5mxkz3kwtorv/wall_tex.jpg', t => {
+			setRepeatWrapping(t, [3, 3]);
+			progress++;
+			updateProgress(progress);
+			return null;
+		});
+
+		const roomFrontSideTex2 = loadTexture('https://dl.dropbox.com/s/msn5mxkz3kwtorv/wall_tex.jpg', t => {
+			setRepeatWrapping(t, [1, 3]);
+			progress++;
+			updateProgress(progress);
+			return null;
+		});
+
+		const roomBackSideTex = loadTexture('https://dl.dropbox.com/s/msn5mxkz3kwtorv/wall_tex.jpg', t => {
+			setRepeatWrapping(t, [3, 6]);
+			progress++;
+			updateProgress(progress);
+		});
+
+		const wallLeftAndRightSideTex = loadTexture('https://dl.dropbox.com/s/msn5mxkz3kwtorv/wall_tex.jpg', t => {
+			setRepeatWrapping(t, [6, 6]);
+			progress++;
+			updateProgress(progress);
+			return null;
+		});
+
+		const floorTex = loadTexture('https://dl.dropbox.com/s/udp3naw3zuwog81/floor_tex.png', t => {
+			setRepeatWrapping(t, [12, 24], THREE.MirroredRepeatWrapping);
+			progress++;
+			updateProgress(progress);
+			return null;
+		});
+
+		const ceilingTex = loadTexture('https://dl.dropbox.com/s/ajpthzpa0pzqauv/ceiling_texture.jpg', t => {
+			setRepeatWrapping(t, [4, 8], THREE.MirroredRepeatWrapping);
+			progress++;
+			updateProgress(progress);
+			return null;
+		});
+
+		const roomMaterials = [
+			new THREE.MeshPhongMaterial({
+				map: wallLeftAndRightSideTex,
+				shininess: 0,
+				side: THREE.DoubleSide
+			}),
+			new THREE.MeshPhongMaterial({
+				map: wallLeftAndRightSideTex,
+				shininess: 0,
+				side: THREE.DoubleSide
+			}),
+			new THREE.MeshBasicMaterial({
+				map: ceilingTex,
+				color: 0x282828,
+				side: THREE.DoubleSide
+			}),
+			new THREE.MeshPhongMaterial({
+				map: floorTex,
+				shininess: 0,
+				side: THREE.DoubleSide
+			}),
+			new THREE.MeshPhongMaterial({
+				map: roomBackSideTex,
+				shininess: 0,
+				side: THREE.DoubleSide
+			}),
+			new THREE.MeshPhongMaterial({
+				map: roomBackSideTex,
+				shininess: 0,
+				side: THREE.DoubleSide,
+				visible: false
+			}),
+		];
+
+		const roomBasicMats = [
+			new THREE.MeshBasicMaterial({
+				map: wallLeftAndRightSideTex,
+				color: 0x282828,
+				side: THREE.FrontSide
+			}),
+			new THREE.MeshBasicMaterial({
+				map: wallLeftAndRightSideTex,
+				color: 0x282828,
+				side: THREE.FrontSide
+			}),
+			new THREE.MeshBasicMaterial({
+				visible: false,
+			}),
+			new THREE.MeshBasicMaterial({
+				map: ceilingTex,
+				color: 0x282828,
+				side: THREE.FrontSide
+			}),
+			new THREE.MeshBasicMaterial({
+				map: roomBackSideTex,
+				color: 0x282828,
+				side: THREE.FrontSide,
+			}),
+			new THREE.MeshBasicMaterial({
+				visible: false
+			}),
+		];
+
+		addMesh(
+			new THREE.PlaneBufferGeometry(70, 70),
+			new THREE.MeshPhongMaterial({
+				map: roomFrontSideTex1,
+				side: THREE.DoubleSide
+			}), 60, 35, -125,
+			0, 0, 0, 1, 1, 1, false, true
+		);
+
+		addMesh(
+			new THREE.PlaneBufferGeometry(40, 70),
+			new THREE.MeshPhongMaterial({
+				map: roomFrontSideTex2,
+				side: THREE.DoubleSide
+			}), -15, 35, -125,
+			0, 0, 0, 1, 1, 1, false, true
+		);
+
+		addMesh(new THREE.BoxBufferGeometry(130, 70, 250), roomMaterials, 30, 35, 0, 0, 0, 0, 1, 1, 1, false, true);
+		addMesh(new THREE.BoxBufferGeometry(130.5, 70.5, 250.5), roomBasicMats, 30, 35, 0, 0, 0, 0, 1, 1, 1, false, true);
+
+		window.addEventListener('resize', onWindowResize, false);
+
+		function onWindowResize() {
+			const w = window.innerWidth;
+			const h = window.innerHeight;
+			renderer.setSize(w, h);
+			camera.aspect = w / h;
+			camera.updateProjectionMatrix();
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene, camera);
+			stats.update();
+			controls.update();
+		}
+
+		const timer = setInterval(function() {
+			if (progress + unloaded === calls) {
+				onIncorrectRendererSize();
+				clearInterval(timer);
+				render();
+
+				setTimeout(() => mainContainer.style.opacity = '0', 750);
+				setTimeout(() => canvas.style.filter = 'blur(0px)', 1000);
+
+				setTimeout(() => {
+					mainContainer.style.display = 'none';
+					canvas.style.filter = 'none';
+				}, 1700);
+
+				setTimeout(() => {
+					stats = new Stats();
+					document.body.append(stats.dom);
+				}, 2000);
+			}
+		}, 50);
+	}
+
+	</script>
+  </body>
+</html>
+<STYLE>@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap");
+html,
+body {
+  position: fixed;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  font-family: "Quicksand", sans-serif;
+}
+
+#c {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 99;
+  width: 100%;
+  height: 100%;
+  filter: blur(12px);
+  transition: filter 300ms ease;
+}
+
+.main-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: black;
+  transition: opacity 500ms ease-in-out;
+}
+
+.loading-container {
+  position: absolute;
+  max-width: 1200px;
+  margin: 0;
+  width: 80%;
+  height: auto;
+  min-width: 120px;
+  padding: 10px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loader {
+  background: #383838;
+  width: 100%;
+  height: 35px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  top: 0;
+  left: 0;
+}
+
+.loader-part {
+  transform: scaleX(0);
+  background: #2c82e5;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  top: 0;
+  left: 0;
+  transform-origin: left;
+  transition: transform 500ms ease-out;
+}
+
+#progress-status {
+  position: absolute;
+  top: calc(50% - 10px);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 18px;
+  text-align: center;
+  color: antiquewhite;
+  font-size: 14px;
+  z-index: 9999;
+}
+
+#loaded-items-number {
+  position: relative;
+  color: antiquewhite;
+  text-align: center;
+  top: 0;
+  left: 0;
+  margin: 10px 0 0 0;
+  padding: 0;
+  font-size: 13px;
+}
+
+@media screen and (max-width: 300px) {
+  #progress-status {
+	top: calc(50% - 8px);
+	font-size: 12px;
+  }
+
+  .loader {
+	height: 30px;
+  }
+
+  #loaded-items-number {
+	font-size: 11px;
+  }
+}
+</STYLE>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protected Page</title>
+<script>
+// Disable right-click context menu
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+// Disable Control+U
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+    }
+});
+</script>
+</head>
+<body>
+
+<script>/**
+ * Untuk membuat link bisa dicopy
+ */
+const actionLink = document.querySelectorAll(".link-card .link-action");
+
+actionLink.forEach((action) => {
+  action.addEventListener("click", (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(action.parentElement.getAttribute("href"));
+
+    /**
+     * Untuk memunculkan toast notification
+     */
+    document.getElementById("toast").innerHTML = `
+        <div class="toast-container">
+            <p>✅ Link <strong> ${action.parentElement.innerText} </strong> berhasil disalin!</p>
+        </div>
+    `;
+
+    /**
+     * Untuk menghilangkan toast notification
+     */
+
+    setTimeout(() => {
+      document
+        .querySelector("#toast .toast-container")
+        .classList.add("toast-gone");
+    }, 300);
+
+    setTimeout(() => {
+      document.querySelector("#toast .toast-container").remove();
+    }, 2000);
+  });
+});
+
+/**
+ * Untuk ganti icon sosmed saat hover
+ */
+
+document.querySelectorAll(".sosmed i").forEach((sosmed) => {
+  sosmed.addEventListener("mouseenter", () => {
+    sosmed.classList.remove("ph");
+    sosmed.classList.add("ph-fill");
+  });
+
+  sosmed.addEventListener("mouseleave", () => {
+    sosmed.classList.remove("ph-fill");
+    sosmed.classList.add("ph");
+  });
+});
+
+/**
+ * Animasi Text bergerak saat scroll
+ */
+
+document.addEventListener("scroll", (e) => {
+  document.querySelector(".bg-text-animation").style.transform = `translateX(${
+    window.scrollY / 5
+  }px)`;
+});</script>
+

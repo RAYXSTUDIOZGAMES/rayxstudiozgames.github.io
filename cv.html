@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CV - Syed Rayan">
+  <title>CV | Syed Rayan</title>
+  <link rel="icon" type="image/x-icon" href="portrait.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #11111b 0%, #1a1a2e 100%);
+      color: #ffffff;
+      font-family: 'Fira Code', 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(128, 0, 255, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      top: -100px;
+      right: -100px;
+      animation: float 6s ease-in-out infinite;
+      z-index: -1;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(107, 197, 248, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      bottom: -150px;
+      left: -150px;
+      animation: float 8s ease-in-out infinite reverse;
+      z-index: -1;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, 30px); }
+    }
+
+    .container {
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .content {
+      background: linear-gradient(135deg, rgba(128, 0, 255, 0.15), rgba(107, 197, 248, 0.08));
+      padding: 80px 60px;
+      border-radius: 25px;
+      border: 2.5px solid;
+      border-image: linear-gradient(135deg, rgba(128, 0, 255, 0.9), rgba(107, 197, 248, 0.7)) 1;
+      backdrop-filter: blur(20px);
+      box-shadow: 
+        0 0 60px rgba(128, 0, 255, 0.4),
+        0 15px 50px rgba(128, 0, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .icon {
+      font-size: 5rem;
+      margin-bottom: 30px;
+      animation: pulse 2s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin: 20px 0;
+      background: linear-gradient(135deg, #6bc5f8, #8000ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 40px rgba(128, 0, 255, 0.3);
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .status {
+      font-size: 1.3rem;
+      color: #e8e8ff;
+      margin: 20px 0 30px;
+      line-height: 1.8;
+      position: relative;
+      z-index: 2;
+    }
+
+    .description {
+      font-size: 1.1rem;
+      color: #d0d0ff;
+      margin: 30px 0;
+      line-height: 1.8;
+      letter-spacing: 0.3px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .info-box {
+      background: rgba(128, 0, 255, 0.1);
+      border-left: 4px solid #6bc5f8;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 30px 0;
+      position: relative;
+      z-index: 2;
+      text-align: left;
+    }
+
+    .info-box strong {
+      color: #6bc5f8;
+      font-weight: 600;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 50px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn {
+      padding: 15px 40px;
+      border: 2px solid;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #8000ff, #6bc5f8);
+      color: #ffffff;
+      border-color: rgba(128, 0, 255, 0.8);
+      box-shadow: 0 0 30px rgba(128, 0, 255, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 50px rgba(128, 0, 255, 0.6);
+      border-color: rgba(128, 0, 255, 1);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #6bc5f8;
+      border-color: rgba(107, 197, 248, 0.6);
+      box-shadow: 0 0 20px rgba(107, 197, 248, 0.2);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(107, 197, 248, 0.15);
+      color: #ffffff;
+      border-color: rgba(107, 197, 248, 1);
+      box-shadow: 0 0 40px rgba(107, 197, 248, 0.4);
+      transform: translateY(-3px);
+    }
+
+    .contact-section {
+      margin-top: 40px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .contact-section h3 {
+      color: #6bc5f8;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .contact-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .contact-links a {
+      color: #6bc5f8;
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+      padding: 5px 0;
+    }
+
+    .contact-links a:hover {
+      color: #ffffff;
+      border-bottom-color: #6bc5f8;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .status {
+        font-size: 1rem;
+      }
+
+      .content {
+        padding: 50px 30px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <div class="icon">📄</div>
+      
+      <h1>CV Not Available</h1>
+      <p class="status">Sorry, my CV is not publicly available for everyone</p>
+      
+      <p class="description">
+        My detailed CV and professional documents are shared only with potential employers or on a case-by-case basis. If you're interested in learning more about my qualifications and experience, please feel free to reach out!
+      </p>
+
+      <div class="info-box">
+        <strong>💼 Professional Inquiries:</strong><br>
+        If you'd like to know more about my background, skills, and experience, please contact me directly through the links below.
+      </div>
+
+      <div class="button-group">
+        <a href="/" class="btn btn-primary">← Back to Portfolio</a>
+        <a href="/#projects" class="btn btn-secondary">View My Projects</a>
+      </div>
+
+      <div class="contact-section">
+        <h3>Get in Touch</h3>
+        <p style="color: #d0d0ff; margin-bottom: 15px;">Connect with me on social media or reach out directly</p>
+        <div class="contact-links">
+          <a href="https://www.instagram.com/bmr.ez/" target="_blank">Instagram</a>
+          <a href="https://www.youtube.com/@BmrEditz-1" target="_blank">YouTube</a>
+          <a href="https://discord.com/invite/t6hvHaunkT" target="_blank">Discord</a>
+          <a href="https://www.tiktok.com/@bmreditz1?is_from_webapp=1&sender_device=pc" target="_blank">TikTok</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
